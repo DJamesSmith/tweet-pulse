@@ -14,6 +14,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'sentiment',
 ]
 
 MIDDLEWARE = [
@@ -79,3 +81,6 @@ MAILERS = {
 
 # Dataset downloaded from:
 # https://www.kaggle.com/datasets/kazanova/sentiment140
+
+# python manage.py load_tweets
+# python manage.py load_tweets --sample 5000

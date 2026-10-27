@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Upload CSV{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Upload your own tweets</h1>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card p-4">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.file }}
+                <div class="form-text">{{ form.file.help_text }}</div>
+                <button type="submit" class="btn btn-dark mt-3">Upload and analyze</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card p-4">
+            <h2 class="h6">Example file</h2>
+            <pre class="mb-2 small">text
+I love this new phone!
+Worst service ever, never coming back.
+The meeting is at 3pm.</pre>
+            <p class="text-muted small mb-0">Any other columns in the file are ignored.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
