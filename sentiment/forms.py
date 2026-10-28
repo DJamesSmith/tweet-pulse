@@ -12,5 +12,5 @@ class AnalyzeForm(forms.Form):
 
 class UploadForm(forms.Form):
     file = forms.FileField(
-        help_text="A CSV file with a column named 'text'.",
+        help_text="A CSV with a column named 'text', or a file in the Sentiment140 format. Up to 10,000 rows are read.",
         widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": ".csv"}))

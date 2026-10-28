@@ -1,4 +1,5 @@
 import csv
+import io
 
 import pandas as pd
 from django.contrib import messages
@@ -90,8 +91,8 @@ def accuracy(request):
     return render(request, "sentiment/accuracy.html", context)
 
 
-# Shared by the tweet list and the export, so both use the same filters.
 def filtered_tweets(request):
+    """Shared by the tweet list and the export, so both use the same filters."""
     tweets = Tweet.objects.all().order_by("-id")
 
     sentiment = request.GET.get("sentiment", "")
@@ -121,18 +122,46 @@ def tweet_list(request):
     return render(request, "sentiment/tweet_list.html", context)
 
 
+MAX_UPLOAD_ROWS = 10000
+SENTIMENT140_COLUMNS = ["target", "ids", "date", "flag", "user", "text"]
+
+
+def read_uploaded_csv(file):
+    """
+    Read an uploaded CSV and return a table with a 'text' column.
+    Returns None if no tweet column can be found.
+    """
+    # Read the file into memory once, so we can parse it twice if needed.
+    content = file.read()
+
+    data = pd.read_csv(io.BytesIO(content), encoding_errors="replace", nrows=MAX_UPLOAD_ROWS)
+
+    # "Text", " text " and "TEXT" should all count as "text".
+    data.columns = [str(column).strip().lower() for column in data.columns]
+    if "text" in data.columns:
+        return data
+
+    # The Sentiment140 file has no header row and 6 columns,
+    # so read it again and name the columns ourselves.
+    if len(data.columns) == 6:
+        return pd.read_csv(io.BytesIO(content), encoding="latin-1", header=None,
+                           names=SENTIMENT140_COLUMNS, nrows=MAX_UPLOAD_ROWS)
+
+    return None
+
+
 def upload_csv(request):
     form = UploadForm(request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
         try:
-            data = pd.read_csv(request.FILES["file"], encoding_errors="replace")
+            data = read_uploaded_csv(request.FILES["file"])
         except Exception:
             messages.error(request, "Could not read that file. Please upload a valid CSV.")
             return redirect("upload")
 
-        if "text" not in data.columns:
-            messages.error(request, "Your CSV needs a column named 'text'.")
+        if data is None:
+            messages.error(request, "Your CSV needs a column named 'text', or must be in the Sentiment140 format.")
             return redirect("upload")
 
         tweets = []
