@@ -1,87 +1,77 @@
 {% extends "base.html" %}
-
 {% block title %}Accuracy{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-2">How accurate is VADER?</h1>
-<p class="text-muted mb-4">
-    Every Sentiment140 tweet has a real label (Positive or Negative).
-    Here we compare those labels with what VADER predicted.
-</p>
+    <h1 class="h3 mb-2">How accurate is VADER?</h1>
+    <p class="text-muted mb-4"> Every Sentiment140 tweet has a real label (Positive or Negative). Here we compare those labels with what VADER predicted. </p>
 
-{% if total == 0 %}
-    <div class="alert alert-info">
-        No dataset tweets yet. Run <code>python manage.py load_tweets</code> first.
-    </div>
-{% else %}
-
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="text-muted">Accuracy</div>
-            <div class="stat-number">{{ accuracy|floatformat:1 }}%</div>
-            <div class="small text-muted">{{ correct }} correct out of {{ decided }}</div>
+    {% if total == 0 %}
+        <div class="alert alert-info"> No dataset tweets yet. Run <code>python manage.py load_tweets</code> first. </div>
+    {% else %}
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <div class="text-muted">Accuracy</div>
+                    <div class="stat-number">{{ accuracy|floatformat:1 }}%</div>
+                    <div class="small text-muted">{{ correct }} correct out of {{ decided }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <div class="text-muted">Labelled Neutral by VADER</div>
+                    <div class="stat-number text-secondary">{{ neutral_count }}</div>
+                    <div class="small text-muted">Not counted, because the dataset has no neutral tweets</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <div class="text-muted">Dataset tweets checked</div>
+                    <div class="stat-number">{{ total }}</div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="text-muted">Labelled Neutral by VADER</div>
-            <div class="stat-number text-secondary">{{ neutral_count }}</div>
-            <div class="small text-muted">Not counted, because the dataset has no neutral tweets</div>
+        <div class="card p-4 mb-4">
+            <h2 class="h5">Confusion matrix</h2>
+            <p class="text-muted small">Rows show the real label. Columns show what VADER predicted. The green cells are correct.</p>
+            <table class="table table-bordered text-center w-auto">
+                <thead>
+                    <tr>
+                        <th>Real \ Predicted</th>
+                        <th>Positive</th>
+                        <th>Negative</th>
+                        <th>Neutral</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in matrix %}
+                    <tr>
+                        <th>{{ row.real }}</th>
+                        <td class="{% if row.real == 'Positive' %}table-success{% else %}table-danger{% endif %}">{{ row.Positive }}</td>
+                        <td class="{% if row.real == 'Negative' %}table-success{% else %}table-danger{% endif %}">{{ row.Negative }}</td>
+                        <td class="table-light">{{ row.Neutral }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card p-3">
-            <div class="text-muted">Dataset tweets checked</div>
-            <div class="stat-number">{{ total }}</div>
+        <div class="card p-4">
+            <h2 class="h5">Tweets VADER got wrong</h2>
+            <p class="text-muted small">Ten random examples. Reload the page to see others. Look out for sarcasm, slang and words like "not".</p>
+            <table class="table">
+                <thead><tr><th>Tweet</th><th>Real</th><th>VADER</th><th>Score</th></tr></thead>
+                <tbody>
+                {% for tweet in wrong_tweets %}
+                    <tr>
+                        <td>{{ tweet.text }}</td>
+                        <td>{% include "sentiment/_badge.html" with label=tweet.real_label %}</td>
+                        <td>{% include "sentiment/_badge.html" with label=tweet.sentiment %}</td>
+                        <td>{{ tweet.score }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-muted">No mistakes found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </div>
-</div>
-
-<div class="card p-4 mb-4">
-    <h2 class="h5">Confusion matrix</h2>
-    <p class="text-muted small">Rows show the real label. Columns show what VADER predicted. The green cells are correct.</p>
-    <table class="table table-bordered text-center w-auto">
-        <thead>
-            <tr>
-                <th>Real \ Predicted</th>
-                <th>Positive</th>
-                <th>Negative</th>
-                <th>Neutral</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for row in matrix %}
-            <tr>
-                <th>{{ row.real }}</th>
-                <td class="{% if row.real == 'Positive' %}table-success{% else %}table-danger{% endif %}">{{ row.Positive }}</td>
-                <td class="{% if row.real == 'Negative' %}table-success{% else %}table-danger{% endif %}">{{ row.Negative }}</td>
-                <td class="table-light">{{ row.Neutral }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div class="card p-4">
-    <h2 class="h5">Tweets VADER got wrong</h2>
-    <p class="text-muted small">Ten random examples. Reload the page to see others. Look out for sarcasm, slang and words like "not".</p>
-    <table class="table">
-        <thead><tr><th>Tweet</th><th>Real</th><th>VADER</th><th>Score</th></tr></thead>
-        <tbody>
-        {% for tweet in wrong_tweets %}
-            <tr>
-                <td>{{ tweet.text }}</td>
-                <td>{% include "sentiment/_badge.html" with label=tweet.real_label %}</td>
-                <td>{% include "sentiment/_badge.html" with label=tweet.sentiment %}</td>
-                <td>{{ tweet.score }}</td>
-            </tr>
-        {% empty %}
-            <tr><td colspan="4" class="text-muted">No mistakes found.</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-{% endif %}
+    {% endif %}
 {% endblock %}

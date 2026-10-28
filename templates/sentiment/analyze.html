@@ -1,51 +1,50 @@
 {% extends "base.html" %}
-
 {% block title %}Live Analyzer{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4">Live Analyzer</h1>
+    <h1 class="h3 mb-4">Live Analyzer</h1>
 
-<div class="card p-4 mb-4">
-    <form method="post">
-        {% csrf_token %}
-        {{ form.text }}
-        <button type="submit" class="btn btn-dark mt-3">Analyze</button>
-    </form>
-</div>
-
-{% if result %}
-<div class="card p-4">
-    <div class="d-flex align-items-center gap-3 mb-3">
-        <span class="fs-4">{% include "sentiment/_badge.html" with label=result.label %}</span>
-        <span class="fs-5">Compound score: <strong>{{ result.score }}</strong></span>
+    <div class="card p-4 mb-4">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.text }}
+            <button type="submit" class="btn btn-dark mt-3">Analyze</button>
+        </form>
     </div>
 
-    <h2 class="h6">How the text was split</h2>
-    <div class="progress mb-1" style="height: 24px;">
-        <div class="progress-bar bg-success" style="width: {{ result.positive }}%">{{ result.positive }}%</div>
-        <div class="progress-bar bg-secondary" style="width: {{ result.neutral }}%">{{ result.neutral }}%</div>
-        <div class="progress-bar bg-danger" style="width: {{ result.negative }}%">{{ result.negative }}%</div>
-    </div>
-    <p class="text-muted small">Green = positive, grey = neutral, red = negative.</p>
+    {% if result %}
+        <div class="card p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="fs-4">{% include "sentiment/_badge.html" with label=result.label %}</span>
+                <span class="fs-5">Compound score: <strong>{{ result.score }}</strong></span>
+            </div>
 
-    <h2 class="h6 mt-3">Words that moved the score</h2>
-    {% if result.words %}
-        <p class="text-muted small">Each word's value comes from VADER's word list, from -4 (very negative) to +4 (very positive).</p>
-        <table class="table table-sm w-auto">
-            <thead><tr><th>Word</th><th>Value</th></tr></thead>
-            <tbody>
-            {% for item in result.words %}
-                <tr>
-                    <td>{{ item.word }}</td>
-                    <td class="{% if item.value > 0 %}text-success{% else %}text-danger{% endif %}">{{ item.value }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <p class="text-muted small mb-0">VADER also adjusts the score for things like "not", "very", capital letters and "!".</p>
-    {% else %}
-        <p class="text-muted mb-0">None of these words are in VADER's word list, so the text is scored as neutral.</p>
+            <h2 class="h6">How the text was split</h2>
+            <div class="progress mb-1" style="height: 24px;">
+                <div class="progress-bar bg-success" style="width: {{ result.positive }}%">{{ result.positive }}%</div>
+                <div class="progress-bar bg-secondary" style="width: {{ result.neutral }}%">{{ result.neutral }}%</div>
+                <div class="progress-bar bg-danger" style="width: {{ result.negative }}%">{{ result.negative }}%</div>
+            </div>
+            <p class="text-muted small">Green = positive, grey = neutral, red = negative.</p>
+
+            <h2 class="h6 mt-3">Words that moved the score</h2>
+            {% if result.words %}
+                <p class="text-muted small">Each word's value comes from VADER's word list, from -4 (very negative) to +4 (very positive).</p>
+                <table class="table table-sm w-auto">
+                    <thead><tr><th>Word</th><th>Value</th></tr></thead>
+                    <tbody>
+                    {% for item in result.words %}
+                        <tr>
+                            <td>{{ item.word }}</td>
+                            <td class="{% if item.value > 0 %}text-success{% else %}text-danger{% endif %}">{{ item.value }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <p class="text-muted small mb-0">VADER also adjusts the score for things like "not", "very", capital letters and "!".</p>
+            {% else %}
+                <p class="text-muted mb-0">None of these words are in VADER's word list, so the text is scored as neutral.</p>
+            {% endif %}
+        </div>
     {% endif %}
-</div>
-{% endif %}
 {% endblock %}

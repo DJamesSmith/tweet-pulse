@@ -1,13 +1,9 @@
-"""
-All the NLTK sentiment logic lives in this one file.
+# All the NLTK sentiment logic lives in this one file.
+# VADER gives every text a "compound" score from -1 (very negative) to +1 (very positive). We turn that score into a label:
 
-VADER gives every text a "compound" score from -1 (very negative)
-to +1 (very positive). We turn that score into a label:
-
-    score >= 0.05   -> Positive
-    score <= -0.05  -> Negative
-    anything else   -> Neutral
-"""
+#     score >= 0.05   -> Positive
+#     score <= -0.05  -> Negative
+#     anything else   -> Neutral
 
 import html
 import re

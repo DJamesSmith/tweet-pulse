@@ -1,106 +1,102 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4">Dashboard</h1>
+    <h1 class="h3 mb-4">Dashboard</h1>
 
-{% if total == 0 %}
-    <div class="alert alert-info">
-        No tweets yet. Run <code>python manage.py load_tweets</code>
-        or <a href="{% url 'upload' %}">upload a CSV</a> to get started.
-    </div>
-{% else %}
+    {% if total == 0 %}
+        <div class="alert alert-info">
+            No tweets yet. Run <code>python manage.py load_tweets</code>
+            or <a href="{% url 'upload' %}">upload a CSV</a> to get started.
+        </div>
+    {% else %}
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card p-3">
+                    <div class="text-muted">Total tweets</div>
+                    <div class="stat-number">{{ total }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3">
+                    <div class="text-muted">Positive</div>
+                    <div class="stat-number text-success">{{ positive }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3">
+                    <div class="text-muted">Negative</div>
+                    <div class="stat-number text-danger">{{ negative }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3">
+                    <div class="text-muted">Neutral</div>
+                    <div class="stat-number text-secondary">{{ neutral }}</div>
+                </div>
+            </div>
+        </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card p-3">
-            <div class="text-muted">Total tweets</div>
-            <div class="stat-number">{{ total }}</div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card p-3 h-100">
+                    <h2 class="h6">Sentiment split</h2>
+                    <canvas id="pieChart"></canvas>
+                    <p class="text-muted small mt-3 mb-0">Average score: {{ average_score|floatformat:3 }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 h-100">
+                    <h2 class="h6">Top words in positive tweets</h2>
+                    <canvas id="positiveChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 h-100">
+                    <h2 class="h6">Top words in negative tweets</h2>
+                    <canvas id="negativeChart"></canvas>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card p-3">
-            <div class="text-muted">Positive</div>
-            <div class="stat-number text-success">{{ positive }}</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card p-3">
-            <div class="text-muted">Negative</div>
-            <div class="stat-number text-danger">{{ negative }}</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card p-3">
-            <div class="text-muted">Neutral</div>
-            <div class="stat-number text-secondary">{{ neutral }}</div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-3">
-    <div class="col-md-4">
-        <div class="card p-3 h-100">
-            <h2 class="h6">Sentiment split</h2>
-            <canvas id="pieChart"></canvas>
-            <p class="text-muted small mt-3 mb-0">Average score: {{ average_score|floatformat:3 }}</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card p-3 h-100">
-            <h2 class="h6">Top words in positive tweets</h2>
-            <canvas id="positiveChart"></canvas>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card p-3 h-100">
-            <h2 class="h6">Top words in negative tweets</h2>
-            <canvas id="negativeChart"></canvas>
-        </div>
-    </div>
-</div>
-
-{% endif %}
-
-{{ chart_data|json_script:"chart-data" }}
+    {% endif %}
+    {{ chart_data|json_script:"chart-data" }}
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-    // Read the data the view passed to the template.
-    const data = JSON.parse(document.getElementById("chart-data").textContent);
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        // Read the data the view passed to the template.
+        const data = JSON.parse(document.getElementById("chart-data").textContent);
 
-    if (document.getElementById("pieChart")) {
-        new Chart(document.getElementById("pieChart"), {
-            type: "pie",
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    data: data.counts,
-                    backgroundColor: ["#198754", "#dc3545", "#6c757d"]
-                }]
-            }
-        });
+        if (document.getElementById("pieChart")) {
+            new Chart(document.getElementById("pieChart"), {
+                type: "pie",
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.counts,
+                        backgroundColor: ["#198754", "#dc3545", "#6c757d"]
+                    }]
+                }
+            });
 
-        new Chart(document.getElementById("positiveChart"), {
-            type: "bar",
-            data: {
-                labels: data.positive_words,
-                datasets: [{ label: "Times used", data: data.positive_counts, backgroundColor: "#198754" }]
-            },
-            options: { indexAxis: "y", plugins: { legend: { display: false } } }
-        });
+            new Chart(document.getElementById("positiveChart"), {
+                type: "bar",
+                data: {
+                    labels: data.positive_words,
+                    datasets: [{ label: "Times used", data: data.positive_counts, backgroundColor: "#198754" }]
+                },
+                options: { indexAxis: "y", plugins: { legend: { display: false } } }
+            });
 
-        new Chart(document.getElementById("negativeChart"), {
-            type: "bar",
-            data: {
-                labels: data.negative_words,
-                datasets: [{ label: "Times used", data: data.negative_counts, backgroundColor: "#dc3545" }]
-            },
-            options: { indexAxis: "y", plugins: { legend: { display: false } } }
-        });
-    }
-</script>
+            new Chart(document.getElementById("negativeChart"), {
+                type: "bar",
+                data: {
+                    labels: data.negative_words,
+                    datasets: [{ label: "Times used", data: data.negative_counts, backgroundColor: "#dc3545" }]
+                },
+                options: { indexAxis: "y", plugins: { legend: { display: false } } }
+            });
+        }
+    </script>
 {% endblock %}
